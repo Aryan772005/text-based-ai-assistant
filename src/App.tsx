@@ -16,7 +16,7 @@ import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
 import type { Session } from '@supabase/supabase-js';
 import {
-  Bot, Send, Mic, MicOff, Paperclip, ImagePlus, X, FileText, Sparkles, Sun, Moon, User, LogOut
+  Bot, Send, Mic, MicOff, Paperclip, ImagePlus, X, FileText, Sparkles, Sun, Moon, User, LogOut, Menu
 } from 'lucide-react';
 
 interface AttachedFile {
@@ -283,6 +283,7 @@ export default function App() {
 
   return (
     <div className="app-container layout-with-sidebar">
+      <div className="sidebar-backdrop" onClick={() => document.body.classList.remove('sidebar-open')}></div>
       <Sidebar
         conversations={conversations}
         activeId={activeConvId}
@@ -297,6 +298,9 @@ export default function App() {
         {/* Header */}
         <header className="header" style={{ background: 'var(--bg-glass)' }}>
           <div className="header-left">
+            <button className="icon-btn mobile-menu-btn" onClick={() => document.body.classList.add('sidebar-open')}>
+              <Menu size={20} />
+            </button>
             <div className="header-logo"><div className="logo-t">T</div></div>
             <div className="header-info">
               <div className="header-title">
