@@ -80,6 +80,7 @@ export default function Sidebar({
             <LogOut size={16} />
           </button>
         </div>
+        {!collapsed && <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '16px' }}>&copy; {new Date().getFullYear()} Aryan Singh Tariani</div>}
       </div>
     </aside>
   );

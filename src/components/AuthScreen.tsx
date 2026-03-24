@@ -94,6 +94,9 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
           </button>
         </form>
       </div>
+      <div style={{ position: 'absolute', bottom: '24px', fontSize: '12px', color: 'var(--text-muted)' }}>
+        &copy; {new Date().getFullYear()} Aryan Singh Tariani
+      </div>
     </div>
   );
 }
