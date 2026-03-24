@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './index.css';
-import { getAIResponse, fileToBase64 } from './services/ai';
+import { getAIResponse, fileToBase64, uploadMediaToSupabase } from './services/ai';
 import { signOut } from './services/auth';
 import {
   createConversation,
@@ -310,8 +310,22 @@ export default function App() {
         setConversations(prev => prev.map(c => c.id === convId ? { ...c, title: currentInput.slice(0, 50) } : c));
       }
 
+      // Upload files to Supabase to get public URLs
+      const uploadedUrls: string[] = [];
+      if (currentFiles.length > 0) {
+        for (const f of currentFiles) {
+          try {
+            const url = await uploadMediaToSupabase(f.file);
+            if (url) uploadedUrls.push(url);
+          } catch (e: any) {
+            console.error("Upload Error:", e);
+            throw new Error(`Storage Error: Please ensure you have created a PUBLIC storage bucket named "media" in your Supabase dashboard and enabled RLS policies for uploads!`);
+          }
+        }
+      }
+
       // Save user message
-      await saveMessage(convId, userId, 'user', currentInput || '[media]');
+      await saveMessage(convId, userId, 'user', currentInput || '[media]', uploadedUrls);
 
       // Build content for AI
       type ContentPart = { type: string; text?: string; image_url?: { url: string } };
