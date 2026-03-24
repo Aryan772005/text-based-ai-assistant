@@ -354,12 +354,12 @@ export default function App() {
                 <h3>New Creation</h3>
                 <p>Start a new interactive session with Tariani's engine.</p>
               </div>
-              <div className="dash-card">
+              <div className="dash-card" onClick={() => handleSuggestion("Please list and analyze my recently uploaded files, documents, and media.")} style={{ cursor: 'pointer' }}>
                 <FileText size={24} className="dash-icon" />
                 <h3>Recent Files</h3>
                 <p>View the media and documents you've uploaded.</p>
               </div>
-              <div className="dash-card">
+              <div className="dash-card" onClick={() => handleSuggestion("Can you analyze my recent AI interaction patterns and provide some personalized insights?")} style={{ cursor: 'pointer' }}>
                 <Bot size={24} className="dash-icon" />
                 <h3>AI Insights</h3>
                 <p>Explore usage statistics and AI behavior patterns.</p>
