@@ -48,6 +48,93 @@ function formatTime(date: Date) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function RecentFilesView() {
+  const [files, setFiles] = useState<{ url: string; date: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.from('messages')
+      .select('media_urls, created_at')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+         const allFiles: any[] = [];
+         if (data) {
+           data.forEach(msg => {
+             if (msg.media_urls && msg.media_urls.length > 0) {
+               msg.media_urls.forEach((url: string) => allFiles.push({ url, date: msg.created_at }))
+             }
+           })
+         }
+         setFiles(allFiles);
+         setLoading(false);
+      });
+  }, []);
+
+  return (
+    <div className="dashboard-view">
+      <div className="dash-hero" style={{ padding: '32px' }}>
+        <h1>Your Recent Files</h1>
+        <p>A gallery of all the media and documents you've analyzed with Tariani's Engine.</p>
+      </div>
+      {loading ? <div className="spinner" style={{margin:'40px auto'}}/> : 
+        files.length === 0 ? <div style={{textAlign: 'center', marginTop: '40px', color: 'var(--text-muted)'}}>No files uploaded yet. Start a chat and attach an image!</div> :
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px', marginTop: '20px'}}>
+           {files.map((f, i) => (
+             <a key={i} href={f.url} target="_blank" rel="noreferrer" style={{textDecoration: 'none'}}>
+               <div style={{background: 'var(--bg-glass)', border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'var(--transition)', cursor: 'pointer'}}
+                    onMouseOver={e => e.currentTarget.style.borderColor = 'var(--border-active)'}
+                    onMouseOut={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+                  {f.url.match(/\.(jpeg|jpg|gif|png|webp|svg)(\?|$)/i) ? (
+                    <img src={f.url} style={{width: '100%', height: '140px', objectFit: 'cover', borderRadius: '12px'}} />
+                  ) : (
+                    <div style={{width: '100%', height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '12px'}}>
+                      <FileText size={48} color="var(--accent-2)" />
+                    </div>
+                  )}
+                  <div style={{marginTop: '16px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500}}>
+                    {new Date(f.date).toLocaleDateString()} {new Date(f.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </div>
+               </div>
+             </a>
+           ))}
+        </div>
+      }
+    </div>
+  );
+}
+
+function AIInsightsView() {
+  const [stats, setStats] = useState({ convs: 0, msgs: 0 });
+  
+  useEffect(() => {
+    Promise.all([
+      supabase.from('conversations').select('*', { count: 'exact', head: true }),
+      supabase.from('messages').select('*', { count: 'exact', head: true })
+    ]).then(([convRes, msgRes]) => {
+      setStats({ convs: convRes.count || 0, msgs: msgRes.count || 0 });
+    });
+  }, []);
+
+  return (
+    <div className="dashboard-view">
+      <div className="dash-hero" style={{ padding: '32px' }}>
+        <h1>AI Insights & Statistics</h1>
+        <p>Analytics from your interactions with Tariani's Engine.</p>
+      </div>
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginTop: '12px'}}>
+        <div style={{background: 'linear-gradient(135deg, rgba(124,92,252,0.15), rgba(168,85,247,0.15))', border: '1px solid var(--accent-1)', borderRadius: '24px', padding: '40px 32px', textAlign: 'center', boxShadow: '0 0 30px rgba(124,92,252,0.1)'}}>
+           <div style={{fontSize: '56px', fontWeight: 700, color: 'var(--accent-1)', letterSpacing: '-2px'}}>{stats.convs}</div>
+           <div style={{color: 'var(--text-secondary)', marginTop: '12px', fontSize: '16px', fontWeight: 500}}>Total Conversations</div>
+        </div>
+        <div style={{background: 'linear-gradient(135deg, rgba(52,211,153,0.15), rgba(16,185,129,0.15))', border: '1px solid var(--success)', borderRadius: '24px', padding: '40px 32px', textAlign: 'center', boxShadow: '0 0 30px rgba(52,211,153,0.1)'}}>
+           <div style={{fontSize: '56px', fontWeight: 700, color: 'var(--success)', letterSpacing: '-2px'}}>{stats.msgs}</div>
+           <div style={{color: 'var(--text-secondary)', marginTop: '12px', fontSize: '16px', fontWeight: 500}}>Messages Exchanged</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -305,6 +392,8 @@ export default function App() {
             <div className="header-info">
               <div className="header-title">
                 {activeConvId === 'dashboard' ? "Tariani's AI Dashboard" :
+                 activeConvId === 'recent-files' ? "Your Recent Files" :
+                 activeConvId === 'ai-insights' ? "AI Insights" :
                  activeConvId ? conversations.find(c => c.id === activeConvId)?.title || "Tariani's AI" : "Tariani's AI Assistant"}
               </div>
               <div className="header-subtitle">
@@ -340,8 +429,12 @@ export default function App() {
           </div>
         </header>
 
-        {/* Dashboard View */}
-        {activeConvId === 'dashboard' ? (
+        {/* Custom Views */}
+        {activeConvId === 'recent-files' ? (
+          <RecentFilesView />
+        ) : activeConvId === 'ai-insights' ? (
+          <AIInsightsView />
+        ) : activeConvId === 'dashboard' ? (
           <div className="dashboard-view">
             <div className="dash-hero">
               <div className="dash-hero-bg"></div>
@@ -354,12 +447,12 @@ export default function App() {
                 <h3>New Creation</h3>
                 <p>Start a new interactive session with Tariani's engine.</p>
               </div>
-              <div className="dash-card" onClick={() => handleSuggestion("Please list and analyze my recently uploaded files, documents, and media.")} style={{ cursor: 'pointer' }}>
+              <div className="dash-card" onClick={() => setActiveConvId('recent-files')} style={{ cursor: 'pointer' }}>
                 <FileText size={24} className="dash-icon" />
                 <h3>Recent Files</h3>
                 <p>View the media and documents you've uploaded.</p>
               </div>
-              <div className="dash-card" onClick={() => handleSuggestion("Can you analyze my recent AI interaction patterns and provide some personalized insights?")} style={{ cursor: 'pointer' }}>
+              <div className="dash-card" onClick={() => setActiveConvId('ai-insights')} style={{ cursor: 'pointer' }}>
                 <Bot size={24} className="dash-icon" />
                 <h3>AI Insights</h3>
                 <p>Explore usage statistics and AI behavior patterns.</p>
