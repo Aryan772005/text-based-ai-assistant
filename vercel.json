@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/nvidia/(.*)",
+      "destination": "https://integrate.api.nvidia.com/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
