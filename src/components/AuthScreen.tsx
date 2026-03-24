@@ -40,8 +40,8 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
   return (
     <div className="auth-overlay">
       <div className="auth-card">
-        <div className="auth-logo">
-          <Sparkles size={28} color="white" />
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+          <div className="logo-t" style={{width: '64px', height: '64px', fontSize: '32px', borderRadius: '16px'}}>T</div>
         </div>
         <h1 className="auth-title">Welcome to Tariani's AI</h1>
         <p className="auth-sub">Your AI assistant with memory</p>
